@@ -1,0 +1,17 @@
+sudo: false
+language: cpp
+
+os:
+  - linux
+  - osx
+
+compiler:
+  - gcc
+  - clang
+
+script: make
+
+addons:
+  apt:
+    packages:
+      - libpcap-dev
