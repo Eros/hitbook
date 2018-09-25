@@ -1,3 +1,8 @@
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
+#define RANDRANGE(min,max) (rand() % (max + 1 - min) + min)
+
+#define APP_NAME        "sniffex"
 
 #include <arpa/inet.h>
 #include <ctype.h>
@@ -22,9 +27,19 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include "main.hpp"
+
 #include "c-ipcrypt/ipcrypt.h"
 
+/* default amount of packets to capture (-1 for infinite) */
+#define NUM_PACKETS -1
+/* default snap length (maximum bytes per packet to capture) */
+#define SNAP_LEN 1518
+
+/* ethernet headers are always exactly 14 bytes [1] */
+#define SIZE_ETHERNET 14
+
+/* Ethernet addresses are 6 bytes */
+#define ETHER_ADDR_LEN    6
 
 /* Ethernet header */
 struct sniff_ethernet {
@@ -49,8 +64,11 @@ struct sniff_ip {
     u_short ip_sum;                 /* checksum */
     struct  in_addr ip_src,ip_dst;  /* source and dest address */
 };
+#define IP_HL(ip)               (((ip)->ip_vhl) & 0x0f)
+#define IP_V(ip)                (((ip)->ip_vhl) >> 4)
 
 /* TCP header */
+typedef u_int tcp_seq;
 
 struct sniff_tcp {
     u_short th_sport;               /* source port */
@@ -73,6 +91,18 @@ struct sniff_tcp {
     u_short th_sum;                 /* checksum */
     u_short th_urp;                 /* urgent pointer */
 };
+
+void
+got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
+
+void
+print_payload(const u_char *payload, int len);
+
+void
+print_hex_ascii_line(const u_char *payload, int len);
+
+void
+print_app_usage(void);
 
 /*
  * print help text
